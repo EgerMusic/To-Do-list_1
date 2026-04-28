@@ -16,7 +16,7 @@ def add_tasks():
                     f.write(text_tasks + '\n')  # добавление задачи в файл
                     print('Задача добавлена')
 
-def return_list():
+def format_tasks():
     # преобразует список задач в строку с нумерацией
     with open('tasks.txt', 'r', encoding='utf-8') as f:
         return '\n'.join(f'{i}: {task_.strip()}' for i, task_ in enumerate(f, start=1))
@@ -26,7 +26,7 @@ def list_task():
     with open('tasks.txt', 'r', encoding='utf-8') as f:
         if not f.readline():
             return 'Список задач пуст'
-    return return_list()
+    return format_tasks()
 
 def edit_task():
     # режим редактирования задач
@@ -37,7 +37,7 @@ def edit_task():
                 return 'Список задач пуст'  # нет задач для редактирования
 
         # вывод текущего списка
-        print('Ваш текущий список задач: ', return_list(), sep ='\n')
+        print('Ваш текущий список задач: ', format_tasks(), sep ='\n')
 
         number = input('Выберите задачу для редактирования или введите exit для выхода из этого режима: ')
         if number.lower() == 'exit':
@@ -67,7 +67,7 @@ def delete_task():
                 return 'Список задач пуст'  # нечего удалять
 
         # вывод списка задач
-        print('Ваш список задач: ', return_list(), sep ='\n')
+        print('Ваш список задач: ', format_tasks(), sep ='\n')
 
         # возможность удалить все задачи сразу
         number = input('''Удалить все задачи - введите "y";, 
