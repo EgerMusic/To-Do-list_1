@@ -3,12 +3,22 @@ def choice():
     return '1. Добавить задачу\n2. Посмотреть список задач\n3. Изменить задачу\n4. Удалить задачу\n5. Изменить статус задачи\n6. Остановить программу'
 
 def load_tasks():
-    with open('tasks.txt', 'r', encoding='utf-8') as f:
-        return f.readlines()
+    try:
+        with open('tasks.txt', 'r', encoding='utf-8') as f:
+            return f.readlines()
+    except FileNotFoundError:
+        return []
 
 def save_tasks(tasks_list):
     with open('tasks.txt', 'w', encoding='utf-8') as f:
         f.writelines(tasks_list)
+
+def dict_task_and_status(list_tasks):
+    dict_tasks = {}
+    for t in list_tasks:
+        t, s = t.split('|')
+        dict_tasks[t.strip()] = s.strip()
+    return dict_tasks
 
 def add_tasks():
     # режим добавления задач (работает в цикле до 'exit')
@@ -78,7 +88,7 @@ def delete_task():
 Выйти из режима удаления - "exit";
 Или выберите задачу для удаления: ''')
         if number.lower() == 'y':
-            save_tasks('')
+            save_tasks([])
             return 'Все задачи удалены'
 
         if number.lower() == 'exit':
@@ -98,48 +108,40 @@ def delete_task():
 def task_status():
     while True:
         tasks_list = load_tasks()
-        if not tasks_list:
-            return 'Список задач пуст'  # нечего менять
+        temp_dict = dict_task_and_status(tasks_list)
+        if not temp_dict:
+            return 'Список задач пуст'
 
-        # вывод списка задач
         print('Ваш список задач: ', format_tasks(tasks_list), sep='\n')
 
-        # возможность изменить все статусы сразу
-        number = input('''Изменить статусы всех задач все задачи на False (f) или True (t). Введите "f" или "t";
+        number = input('''Изменить статусы всех задач все задачи на "Не выполнено" (f) или "Выполнено" (t). Введите "f" или "t"
 Выйти из режима удаления - "exit";
 Или выберите задачу для изменения ее статуса: ''')
         if number.lower() == 't':
-            temp = []
-            for t in tasks_list:
-                temp.append(t[:t.index('|') + 2] + 'True\n')
-            save_tasks(temp)
+            temp_dict = temp_dict.fromkeys(temp_dict.keys(), 'Выполнено\n')
+            return_list = [f'{k} | {v}' for k, v in temp_dict.items()]
+            save_tasks(return_list)
         elif number.lower() == 'f':
-            temp = []
-            for t in tasks_list:
-                temp.append(t[:t.index('|') + 2] + 'False\n')
-            save_tasks(temp)
+            temp_dict = temp_dict.fromkeys(temp_dict.keys(), 'Не выполнено\n')
+            return_list = [f'{k} | {v}' for k, v in temp_dict.items()]
+            save_tasks(return_list)
         elif number.lower() == 'exit':
-            return 'Вы вышли из режима удаления'
+            return 'Вы вышли из режима изменения статуса'
         else:
             try:
-                index = int(number) - 1  # перевод номера в индекс
-                if 0 <= index < len(tasks_list):
-                    temp = tasks_list[index]
-                    if tasks_list[index].endswith('True\n'):
-                        tasks_list[index] = temp[:temp.index('|')+2] + 'False\n'
-                    else:
-                        tasks_list[index] = temp[:temp.index('|')+2] + 'True\n'
-                    save_tasks(tasks_list)
+                index = int(number)  # перевод номера в индекс
+                if 0 <= index - 1 < len(tasks_list):
+                    temp_dict[number] = input('Введите обновленный статус задачи: ')
+                    return_list = [f'{k} | {v + "\n"}' for k, v in temp_dict.items()]
+                    save_tasks(return_list)
                     print('Статус задачи изменен')
                 else:
                     print('Такой задачи нет в списке')
             except ValueError:
                 print('Вводить нужно номер задачи')
 
-def start(user_choice):
-    with open('tasks.txt', 'a', encoding='utf-8'):
-        pass
 
+def start(user_choice):
     # словарь: выбор пользователя -> функция
     choice_dict = {'1': add_tasks, '2': list_task, '3': edit_task, '4': delete_task, '5': task_status}
 
