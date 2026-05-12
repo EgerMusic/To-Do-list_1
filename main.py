@@ -14,10 +14,10 @@ def save_tasks(tasks_list):
         f.writelines(tasks_list)
 
 def dict_task_and_status(list_tasks):
-    dict_tasks = {}
-    for t in list_tasks:
-        t, s = t.split('|')
-        dict_tasks[t.strip()] = s.strip()
+    dict_tasks = []
+    for task in list_tasks:
+        t, s = task.rsplit('|', maxsplit=1)
+        dict_tasks.append({'task': t.strip(), 'status': s.strip()})
     return dict_tasks
 
 def add_tasks():
@@ -30,7 +30,7 @@ def add_tasks():
             print('Пустой ввод')  # защита от пустых строк
         else:
             tasks = load_tasks()
-            tasks.append(text_tasks + ' | False\n')
+            tasks.append(text_tasks + ' | Не выполнено' + '\n')
             print('Задача добавлена')
             save_tasks(tasks)
 
@@ -49,6 +49,7 @@ def edit_task():
     # режим редактирования задач
     while True:
         tasks_list = load_tasks()
+        temp_list = dict_task_and_status(tasks_list)
         if not tasks_list:
             return 'Список задач пуст'  # нет задач для редактирования
 
@@ -65,9 +66,9 @@ def edit_task():
                 if not text.strip():
                     print('Пустой ввод')  # защита от пустого редактирования
                 else:
-                    temp = tasks_list[index]
-                    tasks_list[index] = text + temp[temp.index('|') - 1:]   # Обновление задачи с учетом нового введенного текста плюс статус задачи (т.е. то, что идет после '|')
-                    save_tasks(tasks_list)
+                    temp_list[index]['task'] = text.strip()
+                    return_list = [f'{i["task"]} | {i["status"] + "\n"}' for i in temp_list]
+                    save_tasks(return_list)
                     print('Задача обновлена')
             else:
                 print('Такой задачи нет в списке')
@@ -108,8 +109,8 @@ def delete_task():
 def task_status():
     while True:
         tasks_list = load_tasks()
-        temp_dict = dict_task_and_status(tasks_list)
-        if not temp_dict:
+        temp_list = dict_task_and_status(tasks_list)
+        if not tasks_list:
             return 'Список задач пуст'
 
         print('Ваш список задач: ', format_tasks(tasks_list), sep='\n')
@@ -118,28 +119,31 @@ def task_status():
 Выйти из режима удаления - "exit";
 Или выберите задачу для изменения ее статуса: ''')
         if number.lower() == 't':
-            temp_dict = temp_dict.fromkeys(temp_dict.keys(), 'Выполнено\n')
-            return_list = [f'{k} | {v}' for k, v in temp_dict.items()]
+            for i in temp_list:
+                i['status'] = 'Выполнено' + '\n'
+            return_list = [f'{i["task"]} | {i["status"]}' for i in temp_list]
             save_tasks(return_list)
+
         elif number.lower() == 'f':
-            temp_dict = temp_dict.fromkeys(temp_dict.keys(), 'Не выполнено\n')
-            return_list = [f'{k} | {v}' for k, v in temp_dict.items()]
+            for i in temp_list:
+                i['status'] = 'Не выполнено' + '\n'
+            return_list = [f'{i["task"]} | {i["status"]}' for i in temp_list]
             save_tasks(return_list)
+
         elif number.lower() == 'exit':
             return 'Вы вышли из режима изменения статуса'
         else:
             try:
-                index = int(number)  # перевод номера в индекс
-                if 0 <= index - 1 < len(tasks_list):
-                    temp_dict[number] = input('Введите обновленный статус задачи: ')
-                    return_list = [f'{k} | {v + "\n"}' for k, v in temp_dict.items()]
+                index = int(number) - 1  # перевод номера в индекс
+                if 0 <= index < len(tasks_list):
+                    temp_list[index]['status'] = input('Введите обновленный статус задачи: ')
+                    return_list = [f'{i["task"]} | {i["status"] + "\n"}' for i in temp_list]
                     save_tasks(return_list)
                     print('Статус задачи изменен')
                 else:
                     print('Такой задачи нет в списке')
             except ValueError:
                 print('Вводить нужно номер задачи')
-
 
 def start(user_choice):
     # словарь: выбор пользователя -> функция
